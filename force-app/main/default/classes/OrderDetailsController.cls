@@ -23,7 +23,7 @@ public with sharing class OrderDetailsController {
     } catch (OrdersApiClient.OrdersApiException e) {
       System.debug(LoggingLevel.WARN, 'Live order read failed: ' + e.getMessage());
       throw userError(
-        'Orders is unavailable right now. The status above is still current.'
+        'Orders is unavailable right now, so amount, lines and participant can\'t be loaded. The status on this page is the last one Salesforce received and may not be the latest.'
       );
     }
   }
