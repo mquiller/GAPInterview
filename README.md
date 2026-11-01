@@ -5,8 +5,7 @@ Orders tells Salesforce whenever an order changes status, so the CX team can ope
 ## What I built, and why
 
 The ask was "all of the order data in Salesforce". I didn't copy all of it, and that was on purpose.
-
-Events only carry IDs and the new status, and there's no `order.updated` event. If I stored an amount, nothing would tell me when it changed, and a copy you can't trust is worse than no copy. I also didn't want participant data sitting in the CRM without a good reason.
+If I stored an amount without a way to refresh it, Salesforce could present outdated data as current. I chose live reads to avoid that risk, at the cost of reporting and availability when Orders is down.
 
 - **Stored:** order ID, friendly ID, status and when it changed, the account link, the account name, and every verified event.
 - **Read live:** amount, lines and participant, with one call per order opened.
@@ -134,14 +133,14 @@ Apex tests cover the signature (including a value computed outside Salesforce), 
 
 Against the live Site, the sample sequence reached the right end state and a tampered body got a 401. Five `--parallel` rounds from clean all ended with the correct statuses, one Account and no failed events, with 3–5 contention 500s per round, all recovered by retry.
 
-One thing I didn't solve: the slowest response in those rounds was 8.5 seconds, and an earlier run, before the contention fix, hit 11.9, over the sender's 10-second timeout. That's safe, because a timed-out delivery is retried and deduped, but I didn't find the cause. Lock waits on the parent Account are my first suspect.
+One thing I didn't solve: the slowest response in those rounds was 8.5 seconds, and an earlier run, before the contention fix, hit 11.9, over the sender's 10-second timeout. Timeouts are recoverable through retries and deduplication, but repeated timeouts could exhaust the sender's retry limit and suspend the subscription. Reducing response latency would be a production priority.
 
 ## What else is missing
 
 - Failures are recorded, but nobody gets alerted, and nothing would notice the feed going quiet.
 - The secret is in a protected custom setting, which only really protects it inside a managed package. It also can't rotate yet.
 - The 429 handling has only been tested with Apex mocks, because the Postman mock never returns one.
-- Failed-event replay is all-or-nothing per batch. If one of the 200 events fails, the whole batch rolls back and stays marked Failed. A permanently bad event could block the others on subsequent replays. In production, I'd use all or none = false.
+- Failed-event replay is all-or-nothing per batch. If one of the 200 events fails, the whole batch rolls back and stays marked Failed. A permanently bad event could block the others on subsequent replays. In production, I'd isolate failed events so one invalid record couldn't block the rest, while keeping each event's related database changes consistent.
 ## Questions I would have asked
 
 **For the product people**
