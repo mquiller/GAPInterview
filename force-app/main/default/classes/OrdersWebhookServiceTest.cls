@@ -176,8 +176,44 @@ private class OrdersWebhookServiceTest {
   }
 
   @IsTest
+  static void concurrentInsertCountsAsContentionButOtherFailuresDoNot() {
+    Account account = new Account(Name = 'Northwind');
+    insert as system account;
+    External_Order__c first = new External_Order__c(
+      Name = 'A',
+      Order_Id__c = 'ord_same',
+      Account__c = account.Id
+    );
+    insert as system first;
+
+    // The same DmlException a losing concurrent insert gets.
+    try {
+      insert as system new External_Order__c(
+        Name = 'B',
+        Order_Id__c = 'ord_same',
+        Account__c = account.Id
+      );
+      Assert.fail('Expected DUPLICATE_VALUE');
+    } catch (DmlException e) {
+      Assert.isTrue(OrdersWebhookService.isContention(e));
+    }
+
+    // A permanent failure must not be retried by the sender forever.
+    try {
+      insert as system new External_Order__c(
+        Name = 'X'.repeat(81),
+        Order_Id__c = 'ord_other',
+        Account__c = account.Id
+      );
+      Assert.fail('Expected STRING_TOO_LONG');
+    } catch (DmlException e) {
+      Assert.isFalse(OrdersWebhookService.isContention(e));
+    }
+  }
+
+  @IsTest
   static void applyFailureReturns200AndCanBeReplayed() {
-    // Name is 80 characters, so this order can't be saved: a real per-row DML failure.
+    // Name is 80 characters, so this order can't be saved: a real DML failure.
     String body = OrdersTestData.body(
       'evt_bad',
       'order.sent',
@@ -192,6 +228,11 @@ private class OrdersWebhookServiceTest {
     Assert.areEqual(OrderEventProcessor.FAILED, failed.Processing_Status__c);
     Assert.isNotNull(failed.Error__c);
     Assert.isNull(failed.Order__c);
+    Assert.areEqual(
+      0,
+      [SELECT COUNT() FROM Account WITH SYSTEM_MODE],
+      'the failed attempt leaves no partial work behind'
+    );
 
     // Whatever was wrong gets fixed; replay then uses the same code path as live delivery.
     failed.Raw_Payload__c = OrdersTestData.body(

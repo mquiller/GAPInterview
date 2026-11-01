@@ -32,6 +32,7 @@ public without sharing class AccountEnrichmentJob implements Queueable, Database
   public void execute(QueueableContext context) {
     Set<Id> remaining = new Set<Id>(accountIds);
     List<Account> toUpdate = new List<Account>();
+    List<Integration_Error__c> errors = new List<Integration_Error__c>();
     Integer retryAfterSeconds = null;
     Integer callLimit = Limits.getLimitCallouts();
 
@@ -58,9 +59,12 @@ public without sharing class AccountEnrichmentJob implements Queueable, Database
       } catch (OrdersApiClient.OrdersApiException e) {
         // 404 or unavailable: nothing a quick retry would fix. Keep the placeholder.
         remaining.remove(account.Id);
-        System.debug(
-          LoggingLevel.WARN,
-          'Account enrichment skipped for ' + account.Id + ': ' + e.getMessage()
+        errors.add(
+          IntegrationErrorLog.build(
+            IntegrationErrorLog.ENRICHMENT,
+            'Account ' + account.Id + ' keeps its placeholder name: ' + e.getMessage(),
+            null
+          )
         );
       }
     }
@@ -72,12 +76,16 @@ public without sharing class AccountEnrichmentJob implements Queueable, Database
       AccessLevel.SYSTEM_MODE
     )) {
       if (!save.isSuccess()) {
-        System.debug(
-          LoggingLevel.WARN,
-          'Account name update failed: ' + save.getErrors()
+        errors.add(
+          IntegrationErrorLog.build(
+            IntegrationErrorLog.ENRICHMENT,
+            'Account name update failed: ' + save.getErrors(),
+            null
+          )
         );
       }
     }
+    IntegrationErrorLog.save(errors);
 
     continueWith(remaining, retryAfterSeconds);
   }
@@ -97,12 +105,10 @@ public without sharing class AccountEnrichmentJob implements Queueable, Database
       );
       enqueue(new AccountEnrichmentJob(remaining, attempt + 1), delayMinutes);
     } else {
-      System.debug(
-        LoggingLevel.WARN,
-        'Account enrichment gave up after ' +
-          MAX_ATTEMPTS +
-          ' attempts: ' +
-          remaining
+      IntegrationErrorLog.record(
+        IntegrationErrorLog.ENRICHMENT,
+        'Gave up after ' + MAX_ATTEMPTS + ' rate-limited attempts: ' + remaining,
+        null
       );
     }
   }

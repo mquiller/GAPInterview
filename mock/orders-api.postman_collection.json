@@ -4,7 +4,7 @@
     "description": "Saved responses from the Orders API spec, for a Postman Mock Server. The mock's URL plus /v1 goes in the Orders_API Named Credential.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
-  "variable": [{ "key": "baseUrl", "value": "https://orders.example.test" }],
+  "variable": [{ "key": "baseUrl", "value": "https://69dec1db-b9a4-4dba-9cef-ec432f660a64.mock.pstmn.io" }],
   "item": [
     {
       "name": "Get account",

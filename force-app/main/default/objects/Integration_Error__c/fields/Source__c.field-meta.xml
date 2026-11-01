@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Source__c</fullName>
+    <description>Which part of the integration failed: Webhook, Webhook contention or Account enrichment. Contention is expected in bursts and the sender retries it.</description>
+    <externalId>false</externalId>
+    <label>Source</label>
+    <length>80</length>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

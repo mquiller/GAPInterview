@@ -4,11 +4,12 @@
  *
  * The sender suspends the subscription after three failed retries, so one bad event
  * must not take down the feed. Once an event is verified and stored it is our problem:
- * we return 200 and record any failure on the row. Non-2xx is only for a bad signature
- * or for when nothing could be saved, where a redelivery is actually useful.
+ * we return 200 and record any failure on the row. Non-2xx is only for a bad signature,
+ * or when nothing was saved and a redelivery will help: concurrent contention, or a
+ * failure to store the event at all.
  *
  * Without sharing, and every query and DML is explicitly system mode: runs as the Site
- * guest user, who has no object or record access by design. It does nothing with
+ * guest user, who has no access to business data by design. It does nothing with
  * records until the signature has been verified.
  */
 public without sharing class OrdersWebhookService {
@@ -38,8 +39,10 @@ public without sharing class OrdersWebhookService {
     }
 
     Savepoint beforeAnyWork = Database.setSavepoint();
+    String eventId;
     try {
       Order_Event__c row = buildRow(rawBody);
+      eventId = row.Event_Id__c;
       if (String.isNotBlank(settings.Default_Owner_Id__c)) {
         row.OwnerId = settings.Default_Owner_Id__c;
       }
@@ -47,12 +50,13 @@ public without sharing class OrdersWebhookService {
       // of one event, even concurrent ones, exactly one insert succeeds.
       Database.SaveResult claim = Database.insert(row, false, AccessLevel.SYSTEM_MODE);
       if (!claim.isSuccess()) {
-        if (OrderEventProcessor.isDuplicate(claim.getErrors())) {
+        if (claim.getErrors()[0].getStatusCode() == StatusCode.DUPLICATE_VALUE) {
           return OK;
         }
-        System.debug(
-          LoggingLevel.ERROR,
-          'Could not store event: ' + claim.getErrors()
+        IntegrationErrorLog.record(
+          IntegrationErrorLog.WEBHOOK,
+          'Could not store event: ' + claim.getErrors(),
+          eventId
         );
         return SERVER_ERROR;
       }
@@ -62,9 +66,12 @@ public without sharing class OrdersWebhookService {
       return OK;
     } catch (Exception e) {
       Database.rollback(beforeAnyWork);
-      System.debug(
-        LoggingLevel.ERROR,
-        'Unexpected webhook failure: ' + e.getMessage()
+      IntegrationErrorLog.record(
+        isContention(e)
+          ? IntegrationErrorLog.CONTENTION
+          : IntegrationErrorLog.WEBHOOK,
+        'Rolled back for redelivery: ' + e.getMessage(),
+        eventId
       );
       return SERVER_ERROR;
     }
@@ -87,14 +94,17 @@ public without sharing class OrdersWebhookService {
   }
 
   /**
-   * Applies inside a savepoint so a thrown failure (a lock timeout, say) leaves
-   * no partial order changes, then records the failure on the rows.
+   * Applies inside a savepoint so a failure leaves no partial account or order
+   * changes, then records the failure on the rows.
    */
   private static void apply(List<Order_Event__c> rows) {
     Savepoint beforeApply = Database.setSavepoint();
     try {
-      enqueueEnrichment(OrderEventProcessor.process(rows).newAccountIds);
+      enqueueEnrichment(OrderEventProcessor.process(rows));
     } catch (Exception e) {
+      if (isContention(e)) {
+        throw e;
+      }
       Database.rollback(beforeApply);
       List<Order_Event__c> failedRows = new List<Order_Event__c>();
       for (Order_Event__c row : rows) {
@@ -110,6 +120,26 @@ public without sharing class OrdersWebhookService {
     }
   }
 
+  /**
+   * Another delivery is working on the same account or order: two first events for
+   * a new order, say, or a lock wait that timed out. The other transaction may not
+   * have committed, so retrying here can't see its record, and Apex can't wait. This
+   * is what the sender's retry with backoff is for: the caller rolls everything back,
+   * including the event's claim, and returns a 500 so the redelivery is processed.
+   */
+  @TestVisible
+  private static Boolean isContention(Exception e) {
+    if (e instanceof QueryException) {
+      return true;
+    }
+    if (e instanceof DmlException) {
+      StatusCode code = ((DmlException) e).getDmlType(0);
+      return code == StatusCode.DUPLICATE_VALUE ||
+        code == StatusCode.UNABLE_TO_LOCK_ROW;
+    }
+    return false;
+  }
+
   /** Best effort: a placeholder account name must never cost us an order status. */
   private static void enqueueEnrichment(Set<Id> newAccountIds) {
     if (newAccountIds.isEmpty()) {
@@ -118,9 +148,10 @@ public without sharing class OrdersWebhookService {
     try {
       System.enqueueJob(new AccountEnrichmentJob(newAccountIds));
     } catch (AsyncException e) {
-      System.debug(
-        LoggingLevel.WARN,
-        'Could not enqueue account enrichment: ' + e.getMessage()
+      IntegrationErrorLog.record(
+        IntegrationErrorLog.ENRICHMENT,
+        'Could not enqueue account enrichment: ' + e.getMessage(),
+        null
       );
     }
   }

@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <applicationVisibilities>
+        <application>Order_Status</application>
+        <visible>true</visible>
+    </applicationVisibilities>
     <classAccesses>
         <apexClass>OrderDetailsController</apexClass>
         <enabled>true</enabled>
@@ -9,6 +13,21 @@
         <enabled>true</enabled>
         <externalCredentialPrincipal>Orders_API-Orders_Principal</externalCredentialPrincipal>
     </externalCredentialPrincipalAccesses>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Integration_Error__c.Event_Id__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Integration_Error__c.Message__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Integration_Error__c.Source__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
     <fieldPermissions>
         <editable>false</editable>
         <field>Account.Orders_Account_Id__c</field>
@@ -77,6 +96,15 @@
         <allowEdit>false</allowEdit>
         <allowRead>true</allowRead>
         <modifyAllRecords>false</modifyAllRecords>
+        <object>Integration_Error__c</object>
+        <viewAllRecords>false</viewAllRecords>
+    </objectPermissions>
+    <objectPermissions>
+        <allowCreate>false</allowCreate>
+        <allowDelete>false</allowDelete>
+        <allowEdit>false</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>false</modifyAllRecords>
         <object>Account</object>
         <viewAllRecords>false</viewAllRecords>
     </objectPermissions>
@@ -98,6 +126,10 @@
         <object>Order_Event__c</object>
         <viewAllRecords>false</viewAllRecords>
     </objectPermissions>
+    <tabSettings>
+        <tab>Integration_Error__c</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
     <tabSettings>
         <tab>External_Order__c</tab>
         <visibility>Visible</visibility>

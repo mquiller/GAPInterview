@@ -6,7 +6,7 @@
 //   node scripts/simulate/simulate-events.mjs <site-url> --tamper    body changed after signing: expects 401
 //   node scripts/simulate/simulate-events.mjs <site-url> --parallel  all at once, twice over: a concurrency test
 //
-// <site-url> is the Site's base URL, e.g. https://mydomain-dev-ed.develop.my.site.com
+// <site-url> is the Site's base URL, e.g. https://mydomain-dev-ed.develop.my.salesforce-sites.com
 import { createHmac } from "node:crypto";
 import { readFileSync } from "node:fs";
 
@@ -53,22 +53,32 @@ if (mode === "--tamper") {
   const body = JSON.stringify(events[0]);
   const tampered = body.replace("order.inProgress", "order.returned");
   const status = await deliver(tampered, sign(body), "tampered body");
-  process.exit(status === 401 ? 0 : 1);
-}
-
-if (mode === "--parallel") {
+  process.exitCode = status === 401 ? 0 : 1;
+} else if (mode === "--parallel") {
   // Every event twice, all in flight together: the races are concurrent first
-  // inserts of one account, one order and one event ID.
+  // inserts of one account, one order and one event ID. A 500 here is expected
+  // contention, so retry as the real sender does: three times, with backoff.
+  const deliverLikeSender = async (event) => {
+    const body = JSON.stringify(event);
+    let status;
+    for (let attempt = 0; attempt <= 3; attempt++) {
+      if (attempt > 0) {
+        await new Promise((done) => setTimeout(done, 2000 * attempt));
+      }
+      status = await deliver(body, sign(body), labelOf(event));
+      if (status === 200) {
+        break;
+      }
+    }
+    return status;
+  };
   const statuses = await Promise.all(
-    [...events, ...events].map((event) => {
-      const body = JSON.stringify(event);
-      return deliver(body, sign(body), labelOf(event));
-    })
+    [...events, ...events].map(deliverLikeSender)
   );
-  process.exit(statuses.every((status) => status === 200) ? 0 : 1);
-}
-
-for (const event of events) {
-  const body = JSON.stringify(event);
-  await deliver(body, sign(body), labelOf(event));
+  process.exitCode = statuses.every((status) => status === 200) ? 0 : 1;
+} else {
+  for (const event of events) {
+    const body = JSON.stringify(event);
+    await deliver(body, sign(body), labelOf(event));
+  }
 }

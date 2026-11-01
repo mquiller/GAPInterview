@@ -4,11 +4,20 @@
         <apexClass>OrdersWebhookResource</apexClass>
         <enabled>true</enabled>
     </classAccesses>
-    <description>Assign to the Site guest user: lets it reach the webhook class and use the Orders credential for account enrichment. No object permissions; the signature check is the authentication.</description>
+    <description>Assign to the Site guest user. Grants the webhook class, the Orders credential for account enrichment, and read on UserExternalCredential, which named credentials require. No access to business data.</description>
     <externalCredentialPrincipalAccesses>
         <enabled>true</enabled>
         <externalCredentialPrincipal>Orders_API-Orders_Principal</externalCredentialPrincipal>
     </externalCredentialPrincipalAccesses>
     <hasActivationRequired>false</hasActivationRequired>
     <label>Orders Webhook Guest</label>
+    <objectPermissions>
+        <allowCreate>false</allowCreate>
+        <allowDelete>false</allowDelete>
+        <allowEdit>false</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>false</modifyAllRecords>
+        <object>UserExternalCredential</object>
+        <viewAllRecords>false</viewAllRecords>
+    </objectPermissions>
 </PermissionSet>

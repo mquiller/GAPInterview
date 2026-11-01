@@ -122,18 +122,18 @@ private class OrderEventProcessorTest {
     insert as system rows;
 
     Test.startTest();
-    OrderEventProcessor.Result result = OrderEventProcessor.process(rows);
+    Set<Id> newAccountIds = OrderEventProcessor.process(rows);
     Assert.isTrue(
       Limits.getQueries() <= 2,
       'Queries used: ' + Limits.getQueries()
     );
     Assert.isTrue(
-      Limits.getDmlStatements() <= 4,
+      Limits.getDmlStatements() <= 3,
       'DML used: ' + Limits.getDmlStatements()
     );
     Test.stopTest();
 
-    Assert.areEqual(10, result.newAccountIds.size());
+    Assert.areEqual(10, newAccountIds.size());
     Assert.areEqual(10, [SELECT COUNT() FROM Account WITH SYSTEM_MODE]);
     Assert.areEqual(
       100,

@@ -192,6 +192,16 @@ private class OrdersApiTest {
       AccountEnrichmentJob.scheduledDelayMinutes,
       'only a rate limit is worth retrying'
     );
+    Assert.areEqual(
+      1,
+      [
+        SELECT COUNT()
+        FROM Integration_Error__c
+        WHERE Source__c = :IntegrationErrorLog.ENRICHMENT
+        WITH SYSTEM_MODE
+      ],
+      'the job finishes as Completed, so the failure has to be recorded'
+    );
   }
 
   @IsTest
