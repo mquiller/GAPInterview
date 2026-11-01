@@ -141,7 +141,7 @@ One thing I didn't solve: the slowest response in those rounds was 8.5 seconds, 
 - Failures are recorded, but nobody gets alerted, and nothing would notice the feed going quiet.
 - The secret is in a protected custom setting, which only really protects it inside a managed package. It also can't rotate yet.
 - The 429 handling has only been tested with Apex mocks, because the Postman mock never returns one.
-
+- Failed-event replay is all-or-nothing per batch. If one of the 200 events fails, the whole batch rolls back and stays marked Failed. A permanently bad event could block the others on subsequent replays. In production, I'd use all or none = false.
 ## Questions I would have asked
 
 **For the product people**
