@@ -38,6 +38,10 @@ The list response includes amount, so the sync could also store it for reporting
 
 ## How it works
 
+There are two separate flows. The LWC never touches the webhook.
+
+**Orders pushes status changes to Salesforce:**
+
 ```mermaid
 flowchart TD
     O[Orders] -->|POST + Orders-Signature| R[OrdersWebhookResource]
@@ -49,10 +53,16 @@ flowchart TD
     C -->|new| P[OrderEventProcessor: apply by status rank]
     P --> DB[(Account, External_Order__c)]
     P -.new account.-> J[AccountEnrichmentJob]
-    J -->|GET /accounts/id| O
+    J -->|GET /accounts/id| A[Orders API]
+```
+
+**A user opens an order, and Salesforce reads the rest from Orders:**
+
+```mermaid
+flowchart TD
     U[User opens an order] --> L[orderLiveDetails LWC]
-    L --> A[OrderDetailsController]
-    A -->|GET /orders/id| O
+    L --> C[OrderDetailsController]
+    C -->|GET /orders/id| A[Orders API]
 ```
 
 ## The decisions that matter
