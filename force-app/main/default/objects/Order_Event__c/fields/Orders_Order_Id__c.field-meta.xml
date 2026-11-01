@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Orders_Order_Id__c</fullName>
+    <description>data.orderId as received. Kept as text so the row stands alone if it could not be linked to an order.</description>
+    <externalId>false</externalId>
+    <label>Orders Order ID</label>
+    <length>255</length>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

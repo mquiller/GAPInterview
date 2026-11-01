@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Orders_Account_Id__c</fullName>
+    <description>The Orders system's ID for this account (e.g. acct_8f3c2a). Links incoming events to the Account and is the value GET /accounts/{accountId} takes. Unique, so concurrent first events cannot create duplicate Accounts.</description>
+    <externalId>true</externalId>
+    <label>Orders Account ID</label>
+    <length>255</length>
+    <required>false</required>
+    <caseSensitive>true</caseSensitive>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>true</unique>
+</CustomField>

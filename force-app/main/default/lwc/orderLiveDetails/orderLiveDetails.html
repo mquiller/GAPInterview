@@ -1,0 +1,38 @@
+<template>
+  <lightning-card title="Live from Orders" icon-name="standard:orders">
+    <lightning-button-icon
+      slot="actions"
+      icon-name="utility:refresh"
+      alternative-text="Refresh"
+      onclick={load}
+    ></lightning-button-icon>
+
+    <div class="slds-var-p-horizontal_medium">
+      <template lwc:if={isLoading}>
+        <lightning-spinner
+          alternative-text="Loading"
+          size="small"
+        ></lightning-spinner>
+      </template>
+
+      <template lwc:if={error}>
+        <p class="slds-text-color_error">{error}</p>
+      </template>
+
+      <template lwc:if={details}>
+        <dl class="slds-list_horizontal slds-wrap slds-var-m-bottom_small">
+          <dt class="slds-item_label slds-text-color_weak">Amount</dt>
+          <dd class="slds-item_detail">{amountText}</dd>
+          <dt class="slds-item_label slds-text-color_weak">Participant</dt>
+          <dd class="slds-item_detail">{details.participantRef}</dd>
+        </dl>
+        <lightning-datatable
+          key-field="id"
+          data={lines}
+          columns={columns}
+          hide-checkbox-column
+        ></lightning-datatable>
+      </template>
+    </div>
+  </lightning-card>
+</template>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Order__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <description>The order this event belongs to. Empty when the event could not be applied.</description>
+    <externalId>false</externalId>
+    <label>Order</label>
+    <referenceTo>External_Order__c</referenceTo>
+    <relationshipLabel>Order Events</relationshipLabel>
+    <relationshipName>Order_Events</relationshipName>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+</CustomField>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Event_Id__c</fullName>
+    <description>event.id from Orders, repeated unchanged on redelivery. The unique index is the idempotency guard: a duplicate insert fails atomically, even for concurrent deliveries. Malformed bodies use invalid:&lt;sha256 of body&gt;.</description>
+    <externalId>true</externalId>
+    <label>Event ID</label>
+    <length>255</length>
+    <required>true</required>
+    <caseSensitive>true</caseSensitive>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>true</unique>
+</CustomField>

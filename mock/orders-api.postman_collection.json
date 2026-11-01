@@ -1,0 +1,55 @@
+{
+  "info": {
+    "name": "Orders API mock (take-home)",
+    "description": "Saved responses from the Orders API spec, for a Postman Mock Server. The mock's URL plus /v1 goes in the Orders_API Named Credential.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [{ "key": "baseUrl", "value": "https://orders.example.test" }],
+  "item": [
+    {
+      "name": "Get account",
+      "request": { "method": "GET", "url": "{{baseUrl}}/v1/accounts/acct_8f3c2a" },
+      "response": [
+        {
+          "name": "acct_8f3c2a",
+          "originalRequest": { "method": "GET", "url": "{{baseUrl}}/v1/accounts/acct_8f3c2a" },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": "{\n  \"id\": \"acct_8f3c2a\",\n  \"friendlyId\": \"AC-260914-017-2231\",\n  \"name\": \"Northwind Plan Sponsor LLC\",\n  \"status\": \"active\",\n  \"updatedAt\": \"2026-10-12T14:03:11Z\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Get order ord_77d1e9",
+      "request": { "method": "GET", "url": "{{baseUrl}}/v1/orders/ord_77d1e9" },
+      "response": [
+        {
+          "name": "ord_77d1e9",
+          "originalRequest": { "method": "GET", "url": "{{baseUrl}}/v1/orders/ord_77d1e9" },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": "{\n  \"id\": \"ord_77d1e9\",\n  \"friendlyId\": \"OR-261001-017-2231\",\n  \"accountId\": \"acct_8f3c2a\",\n  \"participantRef\": \"p_4411\",\n  \"status\": \"sent\",\n  \"amount\": { \"value\": \"1250.00\", \"currency\": \"USD\" },\n  \"lines\": [\n    { \"id\": \"ol_1\", \"type\": \"rollover\", \"status\": \"sent\", \"amount\": { \"value\": \"1250.00\", \"currency\": \"USD\" } }\n  ],\n  \"createdAt\": \"2026-10-01T16:20:05Z\",\n  \"updatedAt\": \"2026-10-12T14:03:11Z\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Get order ord_52ab10",
+      "request": { "method": "GET", "url": "{{baseUrl}}/v1/orders/ord_52ab10" },
+      "response": [
+        {
+          "name": "ord_52ab10",
+          "originalRequest": { "method": "GET", "url": "{{baseUrl}}/v1/orders/ord_52ab10" },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": "{\n  \"id\": \"ord_52ab10\",\n  \"friendlyId\": \"OR-260922-017-1187\",\n  \"accountId\": \"acct_8f3c2a\",\n  \"participantRef\": \"p_1187\",\n  \"status\": \"cleared\",\n  \"amount\": { \"value\": \"300.00\", \"currency\": \"USD\" },\n  \"lines\": [\n    { \"id\": \"ol_1\", \"type\": \"rollover\", \"status\": \"cleared\", \"amount\": { \"value\": \"300.00\", \"currency\": \"USD\" } }\n  ],\n  \"createdAt\": \"2026-09-22T11:05:00Z\",\n  \"updatedAt\": \"2026-10-09T09:41:27Z\"\n}"
+        }
+      ]
+    }
+  ]
+}

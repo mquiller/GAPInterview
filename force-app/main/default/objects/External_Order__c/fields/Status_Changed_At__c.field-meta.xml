@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Status_Changed_At__c</fullName>
+    <description>occurredAt of the event that set the current status (when it happened in Orders, not when Salesforce received it).</description>
+    <externalId>false</externalId>
+    <label>Status Changed At</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>DateTime</type>
+</CustomField>

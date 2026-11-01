@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <classAccesses>
+        <apexClass>OrdersWebhookResource</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <description>Assign to the Site guest user: lets it reach the webhook class and use the Orders credential for account enrichment. No object permissions; the signature check is the authentication.</description>
+    <externalCredentialPrincipalAccesses>
+        <enabled>true</enabled>
+        <externalCredentialPrincipal>Orders_API-Orders_Principal</externalCredentialPrincipal>
+    </externalCredentialPrincipalAccesses>
+    <hasActivationRequired>false</hasActivationRequired>
+    <label>Orders Webhook Guest</label>
+</PermissionSet>
